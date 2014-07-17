@@ -1,0 +1,46 @@
+<head>
+	<link rel="stylesheet" href="../css/bootstrap.css">
+
+</head>
+<body>
+	<nav class="navbar navbar-inverse container-fluid" role="navigation" style="border-radius: 0">
+		<a class="navbar-brand" href="">PerfDash</a>
+		<ul class="nav navbar-nav navbar-right">
+			<li><a href="#">Login</a></li>
+		</ul>
+	</nav>
+
+	<div class="perfdash-menu container-fluid">
+		<div class="perfdash-menu container-fluid">
+			<table class="table table-hover table-condensed">
+				<thead>
+					<tr>
+						<th>Test</th>
+						<th>Throughput</th>
+						<th>Latency</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="perfdash-graphs container-fluid" id="perfdash-graphs">
+	</div>
+
+	<script type="text/template" id="menu-row-template">
+		<td><%-text%></td>
+		<td id="throughput<%-name%>" class="container-fluid"></td>
+		<td id="latency<%-name%>" class="container-fluid"></td>
+	</script>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type="text/javascript" src="./../js/underscore.js"></script>
+	<script type="text/javascript" src="./../js/backbone.js"></script>
+	<script type="text/javascript" src="./../js/json2.js"></script>
+	<script type="text/javascript" src="./../js/Highstock-2.0.3/js/highstock.src.js"></script>
+	<script type="text/javascript" src="./../js/utils.js"></script>
+	<script type="text/javascript" src="./../js/models.js"></script>
+	<script type="text/javascript" src="./../js/views.js"></script>
+	<script type="text/javascript" src="./../js/app.js"></script>
+</body>

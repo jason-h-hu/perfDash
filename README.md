@@ -3,11 +3,12 @@ perfDash
 
 A dashboard to visualize Mongo performance tests
 
-To run in Chrome: 
-- Run a HTTP Server from the topmost directory, and then go to http://localhost:8000/src/
-- I use the command:
-    python -m SimpleHTTPServer
-    
+To run: 
+1. Ensure you have node and npm installed 
+2. Start a mongod instance, and then run datagen.py (if this is the first time)
+3. Run "node server.js" from the root of the project
+4. Open http://localhost:4711
+
 About:
 The architecture is done in backbone.js, the graphs are done with highstock, and the styling is done by bootstrap
 

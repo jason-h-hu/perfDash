@@ -11,10 +11,10 @@ var Test = Backbone.Model.extend({
 		name: "Test1",
 		startTime: 0,
 		interval: 1*60*60*1000,
-		latency: genRand(),		// utils.js
-		insert: genRand(),
-		update: genRand(),
-		read: genRand(),
+		latency: [],		// utils.js
+		insert: [],
+		update: [],
+		read: [],
 		selected: false
 	},
 	initialize: function(){
@@ -44,6 +44,18 @@ var TestMenu = Backbone.Collection.extend({
 				lastEntry.set({selected: true});
 			}
 		}
+	},
+	setSelected: function(name){
+		var that = this
+		this.each(function(item){
+			if (item.get("name") == name){
+				// item.click()
+				// this.unselectAll()
+				that.unselectAll()
+				console.log("cliiiic")
+				item.set({"selected": true})
+			}
+		})
 	},
 	comparator: 'order'
 });

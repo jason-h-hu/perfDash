@@ -31,11 +31,10 @@ var TestMenuItemView = Backbone.View.extend({
 	},
 	click: function(){
 		if (!this.model.get("selected")){
-			var old=  this.model.get("selected")
+			var old = this.model.get("selected")
 			this.model.collection.unselectAll()
 			this.model.set({selected: true});
 		}
-		this.trigger("newselected")
 	},
 	renderHighlight: function(){
 		if (this.model.get("selected")){
@@ -95,3 +94,58 @@ var TestMainView = Backbone.View.extend({
 		this.chart.redraw(true);
 	}
 });
+
+// heatmap
+var TestHeatMap = Backbone.View.extend({
+	collection: null,
+	events: {
+	},	
+	initialize: function(){
+		this.listenTo(this.collection, 'change:selected', this.updateSelection);	
+		this.chart = parseMultiData("perfdash-multi", this.collection)
+		var that = this
+		$(".highcharts-yaxis-labels text").click(function(){
+			that.collection.setSelected($(this).html())
+		})
+		
+	},
+	render: function(){
+
+	},
+	updateSelection: function(){
+		var that = this
+
+		this.chart.yAxis[0].update(
+		{
+			labels: {
+				formatter: function () {
+					var curSelection = that.collection.getSelected()
+					if (curSelection.length > 0){
+						curSelection = curSelection[0].get("name")
+						if (curSelection === this.value) {
+						    return '<span style="fill: ' + Highcharts.getOptions().colors[0] + '; font-weight: bold">' + this.value + '</span>';
+						}
+					}
+					return this.value;
+				}
+			}
+		})
+
+		$(".highcharts-yaxis-labels text").click(function(){
+			that.collection.setSelected($(this).html())
+		})
+
+	}
+
+
+})
+
+var TestMultiView2 = Backbone.View.extend({
+	collection: null,
+	initialize: function(){
+		this.chart = parseMultiData2("perfdash-multi2", this.collection)
+	},
+	render: function(){
+
+	}
+})

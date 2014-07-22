@@ -2,33 +2,34 @@
 
 $(function(){
 
-	// Creating the Backbone.Collection to organize all our tests
-	var menu = new TestMenu();
-
-	// The topmost class
+	var versions = new Versions()
+	var tests = new Tests()
 
 	var DashView = Backbone.View.extend({
 		el: 'body',
 		initialize: function(){
-			jQuery.get( '/api/tests', function( data, textStatus, jqXHR ) {
-				
-				for (var i = 0; i < data.length; i++){
-					var d = data[i]
-					menu.add(new Test(d))
+			var versions = new Versions()
+			var tests = new Tests()
+			jQuery.get( '/api/tests', function( data, textStatus, jqXHR ) {					
+				var versions = new Versions()
+				for (var j = 0; j < 1; j++){		// This makes the tests
+					for (var i = 0; i < data.length; i++){
+						var d = data[i]
+						versions.add(new Version(d))
+					}
+					versions.setLastSelected()
+					var test = new Test({versions: versions})
+					tests.add(test);
 				}
-				var menuView = new TestMenuView({collection: menu});	// views.js
-				var heatMap = new TestHeatMap({collection: menu});
-				var mainView = new TestMainView({collection: menu});
-				var multiView2 = new TestMultiView2({collection: menu});
+				new TestsView({collection: tests})
 			});
 		},
 		render: function() {
-			// $(window).resize() 	// <--------------------------------EW GROSS I DUNNO HOW TO GET AROUND THIS
+			console.log("Rendering dash view")
 		}
 	});
 	var dash = new DashView	
-
-	
-	
+	dash.render()	
+	windows.reload()
 
 }());

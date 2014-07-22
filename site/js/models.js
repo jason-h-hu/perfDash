@@ -1,34 +1,32 @@
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MODELS.JS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Models are how we logically represent the test. 
-
-// This should hold all the intormation about our tests, such as the data, metadata, name, etc. 
-// Pass it in at initialization as a dict {}
-var Test = Backbone.Model.extend({
+// This models the results of a specific 
+// run of a test for a version of the code
+var Version = Backbone.Model.extend({
 	defaults: {
-		name: "Test1",
+		name: "Version 1.0",
+		date: 100000,
 		startTime: 0,
 		interval: 1*60*60*1000,
-		latency: [],		// utils.js
+		latency: [],
 		insert: [],
 		update: [],
 		read: [],
-		selected: false
-	},
-	initialize: function(){
+		selected: true
 	}
 });
 
-// This organizes all our tests into a collection
-var TestMenu = Backbone.Collection.extend({
-	model: Test,
+// This is a collection of all the results 
+// of all the versions run on a test
+var Versions = Backbone.Collection.extend({
+	model: Version,
 	initialize: function(){
 		this.on('add', this.setLastSelected, this)
 	},
 	getSelected: function(){
-		return this.where({ selected: true })
+		var selected = this.where({ selected: true })
+		if (selected.length > 0){
+			return selected[0]
+		}
+		return this.last()
 	},
 	unselectAll: function(){
 		this.each(function(item){
@@ -49,13 +47,26 @@ var TestMenu = Backbone.Collection.extend({
 		var that = this
 		this.each(function(item){
 			if (item.get("name") == name){
-				// item.click()
-				// this.unselectAll()
 				that.unselectAll()
-				console.log("cliiiic")
 				item.set({"selected": true})
 			}
 		})
 	},
-	comparator: 'order'
+	comparator: 'order'	
+});
+
+// This is largely redundant to "Versions" but
+// it also has a bit more metadata
+var Test = Backbone.Model.extend({
+	defaults: {
+		name: "Default Test",
+		versions: new Versions(),
+		ip: "0.0.0.0",
+		expanded: false
+	}
+});
+
+// This collection models all the tests
+var Tests = Backbone.Collection.extend({
+	model: Test
 });

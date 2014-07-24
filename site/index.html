@@ -4,7 +4,7 @@
 </head>
 <body>
 	<nav class="navbar navbar-inverse container-fluid" role="navigation" style="border-radius: 0">
-		<a class="navbar-brand" href="">PerfDash</a>
+		<a class="navbar-brand" href="">sim</a>
 		<ul class="nav navbar-nav navbar-right">
 			<li><a href="#">Login</a></li>
 		</ul>
@@ -15,18 +15,23 @@
 				<div class="col-md-2 test-metadata">
 					<h3 >Test</h3>
 				</div>
-				<div class="col-md-9">
+				<div class="col-md-10">
 					<h3 >Latency + Throughput</h3>
-				</div>
-				<div class="col-md-1">
-					<h3>
-						<button type="button" class="btn btn-primary "><span class="glyphicon glyphicon-plus"></span></button>
-					</h3>
 				</div>
 			</div>
 		</div>
 		<hr>
 		<div class="container-fluid testListBody" id="testListBody">
+		</div>
+
+		<div class="container-fluid redundantFooter">
+			<div class="container-fluid testListFooter">
+				<div class="col-md-12">
+					<h3>
+						<button type="button" class="btn btn-block btn-default" id="addTest">ADD TEST</button>
+					</h3>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -38,21 +43,23 @@
 		<div class="col-md-2 test-metadata">
 			<h4><%-name%></h4>
 			<table class="table table-hover table-condensed small">
+				<tbody>
+				</tbody>
 			</table>
+			<button type="button" class="btn btn-block btn-default" id="expandTest">EXPAND</span></button>
+
+			<button type="button" class="btn btn-block btn-default " id="removeTest"><span class="glyphicon glyphicon-remove"></span></button>
+			<hr>
 		</div>
-		<div class="perfdash-multi col-md-9">
-			<div class="perfdash-test-view container-fluid" id="perfdash-test-view">
+		<div class="sim-multi col-md-10">
+			<div class="sim-test-view container-fluid" id="sim-test-view">
 			</div>
-			<div class="perfdash-heatmap container-fluid" id="perfdash-heatmap">
-			</div>			
-			<button type="button" class="btn btn-info btn-sm btn-block">expand</button>
+			<div class="sim-heatmap container-fluid" id="sim-heatmap">
+			</div>
+			<div class="sim-version-view container-fluid" id="sim-version-view">
+			</div>
+			<hr>
 		</div>
-		<div class="col-md-1">
-			<h3>
-				<button type="button" class="btn btn-danger "><span class="glyphicon glyphicon-remove"></span></button>	
-			</h3>
-		</div>					
-		<hr>
 	</script>
 
 	<!-- takes a key value pair -->

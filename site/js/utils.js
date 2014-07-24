@@ -32,8 +32,6 @@ function buildHeatMap(jQuerySelection, collection){
 			finalParseData.push([j, i, parsedData[i][j]])
 		}
 	}
-	console.log(finalParseData)
-	// console.log(blockheight*names.length)
 	return jQuerySelection.highcharts({ 
 		credits: { 	enabled: false },
 
@@ -89,5 +87,149 @@ function buildHeatMap(jQuerySelection, collection){
 		}]
 
     }).highcharts()
+}
 
+function buildTestPerformance(jQuerySelection, collection){
+	var parsedData = []
+	// var model = collection.getSelected()
+	collection.forEach(function(model){
+
+		parsedData.push({
+			"name": model.get("name"),
+			"data": model.get("data")
+		})
+	})
+
+	return jQuerySelection.highcharts({ 
+		credits: { 	enabled: false },
+		chart: {
+			height: 200,
+			plotBackgroundColor: "#fafafa",
+			type: "column"
+		},
+		title : {
+			text: "",
+		},
+		xAxis: {
+			type: "category"
+			// categories: ["1", "2", "4", "8"]
+		},
+		yAxis: {
+			title: {
+				text: ""
+			},
+			stackLabels: {
+				enabled: true,
+				style: {
+					fontWeight: 'bold',
+					color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+				}
+			}
+		},
+
+		plotOptions: {
+			column: {
+				stacking: 'normal',
+				dataLabels: {
+					enabled: false,
+				}
+			}
+		},
+		legend: {
+			title: {
+				text: "Nodes?",
+				style: {
+					fontSize: 18
+				}
+			},
+			align: 'left',
+			layout: "vertical",	
+			verticalAlign: 'top',
+			itemMarginTop: 12,
+			padding: 0,
+			marginTop: 0
+		},
+		// rangeSelector: {
+		// 	enabled: false
+		// },
+		// plotOptions: {
+		// 	series: {
+		// 		compare: 'percent'
+		// 	}
+		// },
+		// navigator: {
+		// 	enabled: false
+		// },
+		// scrollbar: {
+		// 	enabled: false
+		// },
+		tooltip: {
+			pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
+			valueDecimals: 2
+		},
+		colors: ['#3498db', '#2980b9'],
+
+		series: parsedData
+
+	}).highcharts();
+}
+
+function buildVersionPerformance(jQuerySelection, model){
+	var fields = ["latency", "insert", "update", "read"]
+	var parsedData = []
+	fields.forEach(function(field){
+		var data = model.get(field)
+		var editedData = []
+		for (var i = 0; i < data.length; i++){
+			var v = data[i]["y"] ? data[i]["y"] : data[i]
+			editedData.push({
+				"y" : v,
+				"x" : model.get("startTime") + i*model.get("interval")
+			})
+		}
+		var entry = { 
+			"name" : field,
+			"data" : editedData,
+            "pointStart": model.get("startTime") ,
+            "pointInterval": model.get("interval"),
+            "type": 'column'
+		}
+		parsedData.push(entry)
+	})
+	return jQuerySelection.highcharts('StockChart', { 
+		credits: { 	enabled: false },
+
+		title : {
+			text: '',
+			align: "left"
+		},
+		chart: {
+			plotBackgroundColor: "#fafafa"
+		},
+		rangeSelector: {
+			enabled: false
+		},
+		plotOptions: {
+			series: {
+				compare: 'percent'
+			}
+		},
+		yAxis: {
+			plotLines: [{
+				value: 0,
+				width: 2,
+				color: 'silver'
+			}],
+			align: "left",
+		},
+
+		tooltip: {
+			pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
+			valueDecimals: 2
+		},
+		colors: ['#f7a35c', '#8085e9', '#f15c80', '#e4d354'],
+
+		series: parsedData
+
+	}).highcharts();
 }

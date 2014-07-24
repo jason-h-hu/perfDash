@@ -8,21 +8,42 @@ var application_root = __dirname,
 var app = express();
 
 //Connect to database
-mongoose.connect( 'mongodb://localhost/library_database' );
+mongoose.connect( 'mongodb://localhost/library_database');
 
 //Schemas
 var Test = new mongoose.Schema({
-    title: String,
-    startTime: Number,
-    interval: Number,
-    latency: Array,
-    insert: Array,
-    update: Array,
-    read: Array
+    // title: String,
+    // startTime: Number,
+    // interval: Number,
+    // latency: Array,
+    // insert: Array,
+    // update: Array,
+    // read: Array
+    _id: String,
+    timestamp: Date,
+    simulation_name: String,
+    threads: Number,
+    totals: {
+        insert_doc: {
+            avg_insert: Number,
+            avg_upadate: Number,
+            avg_remove: Number,
+            avg_query: Number,
+            avg_exhaust: Number
+        },
+        remove_doc: {
+            avg_insert: Number,
+            avg_upadate: Number,
+            avg_remove: Number,
+            avg_query: Number,
+            avg_exhaust: Number
+        }        
+    }
+
 });
 
 //Models
-var TestModel = mongoose.model( 'Test', Test );
+var TestModel = mongoose.model( 'Test', Test, "realSchema");
 
 // Configure server
 app.configure( function() {
@@ -49,9 +70,9 @@ app.get( '/api', function( request, response ) {
     response.send( 'Library API is running' );
 });
 
-//Get a list of all books
+
 app.get( '/api/tests', function( request, response ) {
-    return TestModel.find( function( err, test ) {
+    return TestModel.find(function( err, test ) {
         if( !err ) {
             return response.send( test );
         } else {
@@ -59,6 +80,8 @@ app.get( '/api/tests', function( request, response ) {
         }
     });
 });
+
+
 //Start server
 var port = 4711;
 app.listen( port, function() {

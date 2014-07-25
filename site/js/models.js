@@ -3,13 +3,6 @@
 var Version = Backbone.Model.extend({
 	defaults: {
 		name: "Version 1.0",
-		date: 100000,
-		startTime: 0,
-		interval: 1*60*60*1000,
-		latency: [],
-		insert: [],
-		update: [],
-		read: [],
 		selected: true
 	}
 });

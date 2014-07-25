@@ -22,7 +22,8 @@ var TestView = Backbone.View.extend({
 	className: "container-fluid testListItem123456 ",
 	template: _.template($("#testListTemplate").html()),
 	initialize: function(){
-		var metadataKeys = ["date", "ip"]
+		var metadataKeys = ["server_host", "server_version"]
+		console.log(this.model)
 		var metadataTemplate = _.template($("#testListMetadataTemplate").html())
 		var model = this.model
 		this.$el.html(this.template({
@@ -30,7 +31,7 @@ var TestView = Backbone.View.extend({
 		}));
 		var metadata = ""
 		metadataKeys.forEach(function(key){
-			var v = model.get("key") ? model.get("key") : "asdjfjslas"
+			var v = model.get(key) ? model.get(key) : "asdjfjslas"
 			var html = metadataTemplate({
 				key: key,
 				value: v
@@ -64,7 +65,6 @@ var TestView = Backbone.View.extend({
 
 	}
 	// destroy: function(){
-	// 	console.log("EXTERMINATE")
 	// 	this.remove();
 	// 	this.render();
 	// }

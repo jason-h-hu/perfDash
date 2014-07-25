@@ -7,7 +7,6 @@ $(function(){
 		el: 'body',
 		initialize: function(){
 			jQuery.get( '/api/tests', function( data, textStatus, jqXHR ) {
-				console.log(data)
 				var tests = new Tests()
 				this.testsView = new TestsView({collection: tests})
 
@@ -26,6 +25,8 @@ $(function(){
 					var versions = new Versions()
 					var parsedVersions = {}
 					var curVersions = names[name]
+					var metadata = {}
+
 
 					// Pull out the names of all the different nodes. 
 					// These might not actually matter
@@ -80,29 +81,30 @@ $(function(){
 								aggregateData["latency"][nameVersion] += curVersions[k]["totals"][node][latencyCategories[i]]
 								// aggregateData["latency"][nameVersion] += curVersions[k]["totals"][node][categories[i]]
 							}
+							metadata = curVersions[k]
+							metadata.total = null
 						}
 						for (var key in aggregateData["throughput"]){
 							throughputSeries["categories"].push(key)
 							var t = (aggregateData["throughput"][key])
 							throughputSeries["data"].push(t/curVersions.length)
 						}
-						console.log(aggregateData["latency"])
 						for (var key in aggregateData["latency"]){
 							latencySeries["categories"].push(key)
 							var t = (aggregateData["latency"][key])
 							latencySeries["data"].push(t/curVersions.length)
 						}
-						versions.add(new Version({
-							"series":  {
-								"throughput": throughputSeries, 
-								"latency": latencySeries
-							}
-						})) 
+						var series = {
+							"throughput": throughputSeries, 
+							"latency": latencySeries
+						}
+						var version = new Version({"series": series})
+						console.log(version.get("server_host"))
+						versions.add(version) 
 					}
-					var test = new Test({
-						"name": name,
-						"versions": versions
-					})
+					metadata.name = name
+					metadata.versions = versions
+					var test = new Test(metadata)
 					tests.add(test);
 				}
 

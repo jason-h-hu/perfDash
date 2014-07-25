@@ -8,17 +8,11 @@ var application_root = __dirname,
 var app = express();
 
 //Connect to database
-mongoose.connect( 'mongodb://localhost/library_database');
+mongoose.connect( 'mongodb://zzyzx.local:27017/simulation');
+// mongoose.connect( 'mongodb://localhost/library_database');
 
 //Schemas
 var Test = new mongoose.Schema({
-    // title: String,
-    // startTime: Number,
-    // interval: Number,
-    // latency: Array,
-    // insert: Array,
-    // update: Array,
-    // read: Array
     _id: String,
     timestamp: Date,
     simulation_name: String,
@@ -43,7 +37,7 @@ var Test = new mongoose.Schema({
 });
 
 //Models
-var TestModel = mongoose.model( 'Test', Test, "realSchema");
+var TestModel = mongoose.model( 'Test', Test, "results");
 
 // Configure server
 app.configure( function() {

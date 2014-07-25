@@ -7,7 +7,9 @@ $(function(){
 		el: 'body',
 		initialize: function(){
 			jQuery.get( '/api/tests', function( data, textStatus, jqXHR ) {
+				console.log(data)
 				var tests = new Tests()
+				this.testsView = new TestsView({collection: tests})
 
 				// First, get all the test names
 				var names = {}
@@ -32,99 +34,79 @@ $(function(){
 							parsedVersions[node] = 0
 						}
 					}
-					var categories = ["avg_insert", "avg_remove", "avg_query"]
-					console.log(name)
+					var throughputCategories = ["insert_count", "remove_count", "query_count"]
+					var latencyCategories = ["insert_avg_micros", "remove_avg_micros", "query_avg_micros"]
 
+					// So we're trying to buld a struct that looks like: 
+					// {
+					// 	name: node 
+					// 	data: [thread1, thread2, thread3 ...]
+					// 	categories: ["thread1", "thread2" ...]
+					// }
+					// So we first loop over the node name, then we loop over
+					// all the versions (aka the treads) and pull out the
+					// appropriate data to append to our list, along the
+					// way remember which categories we see so we generate that list
 					for (var node in parsedVersions){
-						var series = {
-								"name" : node,
-								"data" : []
-							}
-						for (var k = 0; k < curVersions.length; k++){
-							var throughput = 0
-							for (var i = 0; i < categories.length; i++){
-								throughput += curVersions[k]["totals"][node][categories[i]]
-							}
-							series["data"].push(throughput)
+						var throughputSeries = {
+							"name" : node,
+							"data" : [],
+							"categories": [],
+							"type": "column",
 						}
-						console.log(node)
-						versions.add(new Version(series)) 
+						var latencySeries = {
+							"name" : node,
+							"data" : [],
+							"categories": [],
+							"type": "spline",
+							"yAxis": 1
+
+						}
+						var aggregateData = {
+							"throughput": {},
+							"latency": {},
+							"totalTime": 0
+						}
+						for (var k = 0; k < curVersions.length; k++){
+							var nameVersion = curVersions[k].threads + ""
+							if (!(nameVersion in aggregateData)){
+								aggregateData["throughput"][nameVersion] = 0
+								aggregateData["latency"][nameVersion] = 0
+							}
+							for (var i = 0; i < throughputCategories.length; i++){
+								aggregateData["throughput"][nameVersion] += curVersions[k]["totals"][node][throughputCategories[i]]/(curVersions[k].simulation_run_seconds)
+							}
+							for (var i = 0; i < latencyCategories.length; i++){
+								aggregateData["latency"][nameVersion] += curVersions[k]["totals"][node][latencyCategories[i]]
+								// aggregateData["latency"][nameVersion] += curVersions[k]["totals"][node][categories[i]]
+							}
+						}
+						for (var key in aggregateData["throughput"]){
+							throughputSeries["categories"].push(key)
+							var t = (aggregateData["throughput"][key])
+							throughputSeries["data"].push(t/curVersions.length)
+						}
+						console.log(aggregateData["latency"])
+						for (var key in aggregateData["latency"]){
+							latencySeries["categories"].push(key)
+							var t = (aggregateData["latency"][key])
+							latencySeries["data"].push(t/curVersions.length)
+						}
+						versions.add(new Version({
+							"series":  {
+								"throughput": throughputSeries, 
+								"latency": latencySeries
+							}
+						})) 
 					}
 					var test = new Test({
 						"name": name,
 						"versions": versions
 					})
 					tests.add(test);
-
-
-					// var versionNames = ["insert", "remove"]
-					// for (vn in versionNames){
-					// 	var versionName = versionNames[vn] + "_doc"
-					// 	var versionInfo = {
-					// 		"name": versionName,
-					// 		"data": [],
-					// 	}
-					// 	for (var i = 0; i < names[name].length; i++){
-					// 		versionInfo["data"].push({
-					// 			"name": names[name][i].threads,
-					// 			"y": names[name][i]["totals"][versionName]["avg_" + versionNames[vn]]
-					// 		})
-					// 	}
-					// 	versions.add(new Version(versionInfo)) 
-					// }
-					// var test = new Test({
-					// 	"name": name,
-					// 	"versions": versions
-					// })
-					// tests.add(test);
 				}
 
-				this.testsView = new TestsView({collection: tests})
 			});
-			// 	for (var name in names){
-			// 		// console.log(name)
-			// 		var versionNames = ["insert", "remove"]
-			// 		for (vn in versionNames){
-			// 			var versionName = versionNames[vn] + "_doc"
-			// 			var versionInfo = {
-			// 					"name": versionName,
-			// 					"data": [],
-			// 				}
-			// 			for (var i = 0; i < names[name].length; i++){
-			// 				versionInfo["data"].push({
-			// 					"name": names[name][i].threads,
-			// 					"y": names[name][i]["totals"][versionName]["avg_" + versionNames[vn]]
-			// 				})
-			// 			}
-			// 			versions.add(new Version(versionInfo)) 
-			// 		}
-			// 		var test = new Test({
-			// 			"name": name,
-			// 			"versions": versions
-			// 		})
-			// 		tests.add(test);
-			// 	}
-
-			// 	this.testsView = new TestsView({collection: tests})
-			// });
-			// jQuery.get( '/api/tests', function( data, textStatus, jqXHR ) {
-				// var tests = new Tests()
-			// 	for (var j = 0; j < data.length; j++){		// This makes the tests
-			// 		var versions = new Versions()
-			// 		var vs = data[j]
-			// 		for (var i = 0; i < vs.versions.length; i++){
-			// 			var d = vs.versions[i]
-			// 			versions.add(new Version(d))
-			// 		}
-			// 		versions.setLastSelected()
-			// 		var test = new Test({
-			// 			name: vs.name,
-			// 			versions: versions
-			// 		})
-			// 		tests.add(test);
-			// 	}
-			// 	this.testsView = new TestsView({collection: tests})
-			// });
 		},
 		render: function() {
 		},

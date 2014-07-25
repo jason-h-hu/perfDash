@@ -12,6 +12,7 @@ var VersionPerformanceGraphView = Backbone.View.extend({
 // This visualizes a single test
 var TestView = Backbone.View.extend({
 	model: new Test(),
+	expanded: false,
 	events: {
 		// "mouseover" : "toggleRemoveButton",
 		// "mouseout" : "toggleRemoveButton",
@@ -51,8 +52,15 @@ var TestView = Backbone.View.extend({
 	},
 	toggleExpand: function(){
 		var model = this.model
-		this.heatmap = buildHeatMap(this.$("#sim-heatmap"), model.get("versions"))
-		this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  model.get("versions").getSelected())
+		if (this.expanded){
+			this.heatmap.destroy()
+			this.versionGraph.destroy()
+		}
+		else{
+			this.heatmap = buildHeatMap(this.$("#sim-heatmap"), model.get("versions"))
+			this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  model.get("versions").getSelected())			
+		}
+		this.expanded = ! this.expanded
 
 	}
 	// destroy: function(){
@@ -67,13 +75,16 @@ var TestsView = Backbone.View.extend({
 	collection: new Tests(),
 	el: ("#testListBody"),
 	initialize: function(){
-		console.log("Initializing TestsView")
+		this.listenTo(this.collection, "add", this.createOnAdd);
 		this.collection.forEach(function(test){
-			var view = new TestView({ model: test });
-			this.$el.append(view.render().el)
+			this.createOnAdd(test)
 		}, this)
 		this.render()
 	},
 	render: function(){
+	},
+	createOnAdd: function(newTestView){
+		var view = new TestView({ model: newTestView });
+		this.$el.append(view.render().el)
 	}
 });

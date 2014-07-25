@@ -1,3 +1,4 @@
+
 function buildHeatMap(jQuerySelection, collection){
 	var blockheight = 20
 	var marginTop = 20
@@ -37,13 +38,9 @@ function buildHeatMap(jQuerySelection, collection){
 
 		chart: {
 			type: 'heatmap',
-			// width: 600
-			// marginTop: marginTop,
-			// marginBottom: marginBottom,
 			height: blockheight*names.length + marginTop + marginBottom
 		},
 		title : {
-			// enabled: false,
 			text: "",
 			align: "left"
 		},
@@ -90,54 +87,96 @@ function buildHeatMap(jQuerySelection, collection){
 }
 
 function buildTestPerformance(jQuerySelection, collection){
-	var parsedData = []
-	// var model = collection.getSelected()
+	var series = []
+	var latency = null
+	var categories = []
 	collection.forEach(function(model){
-
-		parsedData.push({
-			"name": model.get("name"),
-			"data": model.get("data")
-		})
+		var latencyAndthroughput = model.get("series")
+		var throughput = latencyAndthroughput["throughput"]
+		categories = (throughput.categories)
+		series.push(throughput)
+		if (latency == null){
+			latency = latencyAndthroughput["latency"]
+			latency["name"] = "latency"
+		}
+		else{
+			for (var i = 0; i < latency.data.length; i++){
+				latency.data[i] += latencyAndthroughput["latency"]["data"][i]
+			}
+		}
 	})
+	// console.log(latency)
+	series.push(latency)
 
 	return jQuerySelection.highcharts({ 
 		credits: { 	enabled: false },
 		chart: {
 			height: 200,
 			plotBackgroundColor: "#fafafa",
-			type: "column"
+			// type: "column"
 		},
+		colors: ["#f1c40f", "#e67e22", "#e74c3c", "#f39c12", "#d35400", "#c0392b"],// Highcharts.getOptions().colors.slice(1),
+
 		title : {
 			text: "",
 		},
 		xAxis: {
-			type: "category"
-			// categories: ["1", "2", "4", "8"]
+			type: "category",
+			categories: categories
 		},
-		yAxis: {
-			title: {
-				text: ""
+		yAxis: [
+			{
+				title: {
+					text: "Throughput (actions/sec)",
+				},
+				stackLabels: {
+					enabled: true,
+					formatter: function(){
+						return (this.total + "").split(".")[0]
+					}
+				},
+				labels: {
+					style: {
+						fontWeight: 'bold',
+					},
+				},
+
 			},
-			stackLabels: {
-				enabled: true,
+			{
+				title: {
+					text: "Latency (ms/action)",
+					style: {
+						color: Highcharts.getOptions().colors[0]
+					}
+				},
+				labels: {
+					enabled: true,
+					style: {
+						fontWeight: 'bold',
+						color: Highcharts.getOptions().colors[0]
+					},
+				},
 				style: {
-					fontWeight: 'bold',
-					color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-				}
+					color: Highcharts.getOptions().colors[0]
+				},
+				opposite: true,
 			}
-		},
+		],
 
 		plotOptions: {
 			column: {
 				stacking: 'normal',
 				dataLabels: {
 					enabled: false,
-				}
+				},
+			},
+			spline: {
+				color: Highcharts.getOptions().colors[0]				
 			}
 		},
 		legend: {
 			title: {
-				text: "Nodes?",
+				text: "sim node",
 				style: {
 					fontSize: 18
 				}
@@ -149,27 +188,12 @@ function buildTestPerformance(jQuerySelection, collection){
 			padding: 0,
 			marginTop: 0
 		},
-		// rangeSelector: {
-		// 	enabled: false
-		// },
-		// plotOptions: {
-		// 	series: {
-		// 		compare: 'percent'
-		// 	}
-		// },
-		// navigator: {
-		// 	enabled: false
-		// },
-		// scrollbar: {
-		// 	enabled: false
-		// },
 		tooltip: {
 			pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
 			valueDecimals: 2
 		},
-		colors: ['#3498db', '#2980b9'],
 
-		series: parsedData
+		series: series
 
 	}).highcharts();
 }
@@ -227,7 +251,6 @@ function buildVersionPerformance(jQuerySelection, model){
 			pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
 			valueDecimals: 2
 		},
-		colors: ['#f7a35c', '#8085e9', '#f15c80', '#e4d354'],
 
 		series: parsedData
 

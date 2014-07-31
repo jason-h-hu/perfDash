@@ -1,3 +1,33 @@
+function scientificNotation(value){
+	if (((""+value).length < 4) ){
+		return value
+	}
+
+	var power = 0
+	var mantissa = value
+	if (mantissa == 0){
+		return mantissa
+	}
+	while (true){
+		if (mantissa > 10 || mantissa < -10){
+			mantissa /= 10
+			power ++
+		}
+
+		else if (mantissa < 1 && mantissa > -1){
+			mantissa *= 10
+			power --
+		}
+		else {
+			break;
+		}
+	}
+	if (power >= -2 || power <= 2){
+		return (mantissa*(Math.pow(10, power)) + "").substring(0,  power + 3)
+	}
+	return (mantissa+"").substring(0, mantissa.indexOf(".") + 1) + "x10e" + power
+
+}
 
 function buildHeatMap(jQuerySelection, collection){
 	var blockheight = 20
@@ -132,7 +162,8 @@ function buildTestPerformance(jQuerySelection, collection){
 				stackLabels: {
 					enabled: true,
 					formatter: function(){
-						return (this.total + "").split(".")[0]
+						// return scientificNotation(this.total)
+						return ("" + this.total).substring(0, ("" + this.total).indexOf(".") + 2)
 					}
 				},
 				labels: {
@@ -155,6 +186,11 @@ function buildTestPerformance(jQuerySelection, collection){
 						fontWeight: 'bold',
 						color: Highcharts.getOptions().colors[0]
 					},
+					formatter: function(){
+						// console.log(this)
+						return scientificNotation(this.value)
+
+					}
 				},
 				style: {
 					color: Highcharts.getOptions().colors[0]

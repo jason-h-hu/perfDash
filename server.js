@@ -69,7 +69,8 @@ app.get( '/api/tests', function( request, response ) {
     return TestModel.find(function( err, test ) {
         if( !err ) {
             return response.send( test );
-        } else {
+        } 
+        else {
             return console.log( err );
         }
     });

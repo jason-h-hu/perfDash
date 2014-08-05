@@ -23,7 +23,6 @@ var TestView = Backbone.View.extend({
 	template: _.template($("#testListTemplate").html()),
 	initialize: function(){
 		var metadataKeys = ["server_host", "server_version"]
-		console.log(this.model)
 		var metadataTemplate = _.template($("#testListMetadataTemplate").html())
 		var model = this.model
 		this.$el.html(this.template({

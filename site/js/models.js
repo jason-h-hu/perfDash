@@ -51,12 +51,25 @@ var Versions = Backbone.Collection.extend({
 // This is largely redundant to "Versions" but
 // it also has a bit more metadata
 var Test = Backbone.Model.extend({
-	defaults: {
-		name: "Default Test",
-		versions: new Versions(),
-		ip: "0.0.0.0",
-		expanded: false
-	}
+	defaults: function(){
+		return {
+			name: "Default Test",
+			versions: new Versions(),
+			ip: "0.0.0.0",
+			expanded: false
+		}
+	},
+	initialize: function(){
+		var data = this.get("data")
+		if (data){
+			console.log(data)
+			for (var i = 0; i < data.length; i++){
+				this.get("versions").add(new Version({"series": data[i]}))
+			}
+
+		}
+		this.on('add', this.setLastSelected, this)
+	},
 });
 
 // This collection models all the tests

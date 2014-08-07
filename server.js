@@ -1,5 +1,6 @@
 // Module dependencies.
 var application_root = __dirname,
+    db_uri = "mongodb://zzyzx.local:27017/simulation"
     express = require( 'express' ),     //Web framework
     path = require( 'path' ),           //Utilities for dealing with file paths
     dataparser = require( './dataparser.js'),   // Helper methods for parsing data
@@ -10,12 +11,12 @@ var application_root = __dirname,
 var app = express();
 
 //Connect to database
-mongoClient.connect("mongodb://zzyzx.local:27017/simulation", function(err, db){
-    if (err){
-        console.log("Couldn't connect to database, exiting out")
-        return
+mongoClient.connect(db_uri, function(err, db){
+    if (err) {
+        console.log("Couldn't connect to database at " + db_uri + ".  exiting.");
+        return;
     }
-    console.log("Connected to database")
+    console.log("Connected to database at " + db_uri);
 
     // Configure server
     app.configure( function() {
@@ -42,22 +43,142 @@ mongoClient.connect("mongodb://zzyzx.local:27017/simulation", function(err, db){
         response.send( 'Library API is running' );
     });
 
-    // This shows all the workloads for all versions of code
-    app.get( '/api/heatmap/:id', function( request, response ) {
-        response.send("got a heatmap request for " + request.params.id)
-        console.log("got a heatmap request for " + request.params.id)
+    // This shows all workloads across all versions
+    app.get( '/api/heatmap/', function( request, response ) {
+        var cells = {};
+
+        function getThroughput(doc) {
+            var totalTime = doc.run_seconds;
+            if (doc.summary.all_nodes.hasOwnProperty("op_count")) {
+                return doc.summary.all_nodes.op_count / totalTime;
+            } else {
+                var totalOps = 0;
+                doc.summary.nodes.forEach(function (node) {
+                    totalOps += node[Object.keys(node)].op_count;
+                });
+                return totalOps / totalTime;
+            }
+        }
+        // build the list of workloads (y axis)
+        db.collection("results", function(err, col) {
+            // sort
+            col.find({}, {sort: {"server_version": 1}}).toArray(function(err, docs) {
+                var maxThroughput = 0;
+                var minThroughput = 9007199254740992; // max num
+                var xLabels = new Array();
+                var yLabels = new Array();
+                docs.forEach(function(doc) {
+                    if (!cells.hasOwnProperty(doc.server_version)) {
+                        cells[doc.server_version] = {};
+                        cells[doc.server_version][doc.workload] = new Array();
+                        xLabels.push(doc.server_version);
+                        yLabels.push(doc.workload);
+                    } else {
+                        if (!cells[doc.server_version].hasOwnProperty(doc.workload)) {
+                            cells[doc.server_version][doc.workload] = new Array();
+                            yLabels.push(doc.workload);
+                        }
+                    }
+                    cells[doc.server_version][doc.workload].push(getThroughput(doc));
+                    if (getThroughput(doc) > maxThroughput)
+                        maxThroughput = getThroughput(doc);
+                    if (getThroughput(doc) < minThroughput)
+                        minThroughput = getThroughput(doc);
+                });
+
+                // deduplicate labes from multiple runs
+                yLabels = yLabels.filter(function(elem, pos) {
+                    return yLabels.indexOf(elem) == pos;
+                });
+
+                var values = new Array(); // 2d array (x: version y: server)
+                var xPos = 0;
+                for (x in cells) {
+                    Object.keys(cells[x]).forEach(function(y) {
+                        var totalThroughput = 0;
+                        var totalRuns = 0;
+                        cells[x][y].forEach(function(t) {
+                            totalThroughput += t;
+                            totalRuns++;
+                        });
+                        var avgThroughput = totalThroughput / totalRuns;
+                        values.push([xPos, yLabels.indexOf(y), avgThroughput]);
+                    });
+                    xPos++;
+                }
+
+                response.send({
+                                min_throughput: minThroughput,
+                                max_throughput: maxThroughput,
+                                xLabels: xLabels,
+                                yLabels: yLabels,
+                                // cells: cells,
+                                values: values
+                              });
+            });
+        });
     });
 
-    // This shows the workloads for all versions of a code
-    app.get( '/api/test/:id', function( request, response ) {
+    // This shows all workloads run against a single server version
+    app.get( '/api/version/:id', function( request, response ) {
         response.send("got a test request for " + request.params.id)
         console.log("got a test request for " + request.params.id)
     });
 
+    // this shows a given workload across all versions
     app.get( '/api/run/:id', function( request, response ) {
         response.send("got a run request for " + request.params.id)
         console.log("got a run request for " + request.params.id)
     });
+
+    // For the given test, this should show the aggregate summary of all its
+    // runs. This can either be an average, running average of the previous n
+    // runs, or just the last run
+    // This should follow the schema: 
+    // {
+    //     ids: [id1, id2, id3 ... idm],               
+    //     categories: [c1, c2, c3 ... cn],            
+    //     series: [{
+    //                 name: node1,
+    //                 data: [v1, v2, v3 ... vn]
+    //             },
+    //             {
+    //                 name: node2,
+    //                 data: [v1, v2, v3 ... vn]
+    //             }
+    //             ...
+    //             {
+    //                 name: latency,
+    //                 data: [v1, v2, v3 ... vn]
+    //             }]
+    // }
+    // Where m is the number of runs, and id is the id of a run, and n is the
+    // number of categories, such as "1 thread", "2 threads", etc. 
+    app.get( '/api/test/summary/', function( request, response ) {
+        console.log("got a test/summary request")
+        db.collection("results").find().toArray(function(err, items) {
+            if (err){
+                console.log("Error with querying results")
+            }
+            else{
+                var data = dataparser.packageData(items)
+                console.log(data)
+                var results = []
+                for (var workload in data){
+                    var versions = data[workload]
+                    for (var gitversion in versions){
+                        var runs = versions[gitversion]
+                        results.push(dataparser.parseResults(runs))
+                        for (var category in runs){
+                        }
+                    }
+                }
+                response.send(results)  
+            }
+        })
+    });
+
+
 
     // This gets 
     app.get( '/api/results', function( request, response ) {

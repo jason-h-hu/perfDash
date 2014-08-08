@@ -1,6 +1,6 @@
 // This visualizes a single test
-var TestView = Backbone.View.extend({
-	model: new Test(),
+var WorkloadView = Backbone.View.extend({
+	model: new WorkloadResult(),
 	expanded: false,
 	events: {
 		"click #removeTest" : "remove",
@@ -9,7 +9,7 @@ var TestView = Backbone.View.extend({
 	className: "container-fluid testListItem123456 ",
 	template: _.template($("#testListTemplate").html()),
 	initialize: function(){
-		this.model.on("change:runs", this.renderVersionChart, this)
+		this.model.get("tests").on("change:summary", this.renderTestGraph, this)
 
 		var metadataKeys = ["server_host", "server_version"]
 		var metadataTemplate = _.template($("#testListMetadataTemplate").html())
@@ -35,22 +35,26 @@ var TestView = Backbone.View.extend({
 	},
 	renderCharts: function(){
 		var model = this.model
-		this.testGraph = buildTestPerformance(this.$("#sim-test-view"), this.model.get("summary"))
+		this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  this.model.get("summary"))			
 		// this.heatmap = new HeatmapView({collection: model.get("versions")})
 		// this.versionGraph = new VersionPerformanceGraphView({collection: model.get("versions")})
 	},
-	renderVersionChart: function(){
-		console.log("!!!")
-		this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  this.model.get("runs"))			
+	renderTestGraph: function(){
+		var last = this.model.get("tests").at(0)
+		console.log(last)
+		if (last != null){
+			this.testGraph = buildTestPerformance(this.$("#sim-test-view"), last.get("summary"))
+		}
 	},
 	toggleExpand: function(){
 		var model = this.model
 		if (this.expanded){
 			// this.heatmap.destroy()
-			this.renderVersionChart()
-			this.versionGraph.destroy()
+			// this.renderTestGraph()
+			this.testGraph.destroy()
 		}
 		else{
+			// this.renderTestGraph()
 			this.model.fetchData()
 			// this.heatmap = tempHeatMap(this.$("#sim-heatmap"))
 		}
@@ -63,8 +67,8 @@ var TestView = Backbone.View.extend({
 });
 
 // This visualizes the whole dashboard, essentially
-var TestsView = Backbone.View.extend({
-	collection: new Tests(),
+var WorkloadsView = Backbone.View.extend({
+	collection: new WorkloadsResults(),
 	el: ("#testListBody"),
 	initialize: function(){
 		this.listenTo(this.collection, "add", this.createOnAdd);
@@ -76,18 +80,17 @@ var TestsView = Backbone.View.extend({
 	render: function(){
 	},
 	createOnAdd: function(newTestView){
-		var view = new TestView({ model: newTestView });
+		var view = new WorkloadView({ model: newTestView });
 		this.$el.append(view.render().el)
 	}
 });
 
-var VersionView = Backbone.View.extend({
+// var WorkloadResults = Backbone.View.extend({
 	
-})
+// })
 
 var HeatMapView = Backbone.View.extend({
 	el: ("#master-view"),
-	// model: new CompleteResults(),
 	initialize: function(){
 		this.model.on("change:summary", this.updateHeatmap, this)
 		this.renderCharts()
@@ -96,13 +99,14 @@ var HeatMapView = Backbone.View.extend({
 		this.heatmap = renderHeatmap(this.$el, this.model.get("summary"))
 	},
 	render: function(){
+		return this
 	},
 	updateHeatmap: function(){
-		var summary = this.model.get("summary")
-		console.log("cccchhanges")
-		console.log(summary)
 		this.heatmap.series[0].setData(summary.values);
 		this.heatmap.xAxis[0].setCategories(summary.xLabels);
 		this.heatmap.yAxis[0].setCategories(summary.yLabels);
+	},
+	notify: function(element){
+		alert(element.html)
 	}
 })

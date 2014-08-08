@@ -125,11 +125,41 @@ mongoClient.connect(db_uri, function(err, db){
         console.log("got a test request for " + request.params.id)
     });
 
-    // this shows a given workload across all versions
+    // this shows a given workload across all versions. 
+    // This return a schema of:
+    // {
+    //     xCategories: [c1, c2, c3 ...],
+    //     series: [
+    //         {   name: name,
+    //             data: [v1, v2 ...]
+    //         }
+    //         ...
+    //     ]
+    // }
     app.get( '/api/run/:id', function( request, response ) {
-        response.send("got a run request for " + request.params.id)
         console.log("got a run request for " + request.params.id)
+        var fakeData = {
+            series: [{
+                name: "version1",
+                data: [5, 8, 12, 17, 21]
+            },
+            {
+                name: "version2",
+                data: [6, 9.5, 14, 19, 23]
+            },
+            {
+                name: "version1",
+                data: [9, 10, 13, 20, 23.25]
+            },
+            {
+                name: "version1",
+                data: [10, 15, 16, 17, 17]
+            }],
+            xCategories: ["1", "2", "4", "8", "16"]
+        }
+        response.send(fakeData)
     });
+
 
     // For the given test, this should show the aggregate summary of all its
     // runs. This can either be an average, running average of the previous n
@@ -149,8 +179,11 @@ mongoClient.connect(db_uri, function(err, db){
     //             ...
     //             {
     //                 name: latency,
-    //                 data: [v1, v2, v3 ... vn]
-    //             }]
+    //             }],
+    //     server_git_version: the version of teh code,
+    //     workload: the test, e.g. twitter,
+    //     harness: the source, e.g. mongo sim,
+    //     name: what you want to call the test
     // }
     // Where m is the number of runs, and id is the id of a run, and n is the
     // number of categories, such as "1 thread", "2 threads", etc. 
@@ -162,25 +195,65 @@ mongoClient.connect(db_uri, function(err, db){
             }
             else{
                 var data = dataparser.packageData(items)
-                console.log(data)
                 var results = []
                 for (var workload in data){
                     var versions = data[workload]
                     for (var gitversion in versions){
                         var runs = versions[gitversion]
                         results.push(dataparser.parseResults(runs))
-                        for (var category in runs){
-                        }
                     }
                 }
+
+                response.send(results)  
+            }
+        })
+    });
+
+    // This gets the same thing as above, but filtered such that it's just 
+    // for a desired workload. e.g. Twitter
+    app.get( '/api/test/:workload', function( request, response ) {
+        console.log("got a test request " + request.params.workload)
+        db.collection("results").find().toArray(function(err, items) {
+            if (err){
+                console.log("Error with querying results")
+            }
+            else{
+                var data = dataparser.packageData(items)
+                var results = []
+                var versions = data[request.params.workload]
+                for (var gitversion in versions){
+                    var runs = versions[gitversion]
+                    results.push(dataparser.parseTestResults(runs, request.workload))
+                }
+
+                response.send(results[0])  
+            }
+        })
+    });
+
+    app.get( '/api/versions/summary/', function( request, response ) {
+        console.log("got a test/summary request")
+        db.collection("results").find().toArray(function(err, items) {
+            if (err){
+                console.log("Error with querying results")
+            }
+            else{
+                var data = dataparser.packageDataVersions(items)
+                var results = []
+                for (var workload in data){
+                    var versions = data[workload]
+                    var result = dataparser.parseResultsVersions(versions)
+                    result.name = workload
+                    results.push(result)
+                }
+
                 response.send(results)  
             }
         })
     });
 
 
-
-    // This gets 
+    // This gets everything
     app.get( '/api/results', function( request, response ) {
         db.collection("results").find().toArray(function(err, items) {
             if (err){
@@ -199,33 +272,4 @@ mongoClient.connect(db_uri, function(err, db){
         console.log( 'Express server listening on port %d in %s mode', port, app.settings.env );
     });
 })
-
-//Schemas
-// var Test = new mongoose.Schema({
-//     _id: String,
-//     timestamp: Date,
-//     simulation_name: String,
-//     threads: Number,
-//     totals: {
-//         insert_doc: {
-//             avg_insert: Number,
-//             avg_upadate: Number,
-//             avg_remove: Number,
-//             avg_query: Number,
-//             avg_exhaust: Number
-//         },
-//         remove_doc: {
-//             avg_insert: Number,
-//             avg_upadate: Number,
-//             avg_remove: Number,
-//             avg_query: Number,
-//             avg_exhaust: Number
-//         }        
-//     }
-
-// });
-
-//Models
-// var TestModel = mongoose.model( 'Test', Test, "results");
-
 

@@ -29,62 +29,15 @@ function scientificNotation(value){
 
 }
 
-function tempComparisonChart(jQuerySelection){
-	return jQuerySelection.highcharts({
-		credits: { 	
-			enabled: false 
-		},
-		title: {
-			text: 'Actions/ms for all versions on all tests (fake data)',
-		},
-		xAxis: {
-			categories: ['1', '2', '4', '8', '16', '32', "64", "v1", "v2", "v3", "v4", "ec2"]
-		},
-		yAxis: {
-			title: {
-				text: 'actions/ms'
-			}
-		},
-		legend: {
-			layout: 'vertical',
-			align: 'left',
-			verticalAlign: 'top',
-			borderWidth: 0
-		},
-		series: [
-			{
-				name: 'version 1',
-				data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
-			}, 
-			{ 
-				name: 'Rainfall error',
-				type: 'arearange',
-				lineWidth: 0,
-		    	linkedTo: ':previous',// yAxis: 1,
-				data: [[6, 7.75], [6.3, 7.2], [8.2, 10.8], [13.8, 15.4], [16, 18.8], [21, 22], [24.3, 25.7], [25.5, 27.5], [22.1, 24.6], [16.5, 19.5], [11.4, 14.7], [8, 10.5]],
-		    	color: Highcharts.getOptions().colors[0],
-		    	fillOpacity: 0.3,
-				tooltip: {
-					pointFormat: '(error range: {point.low}-{point.high} mm)<br/>'
-				}
-			},
-			{
-				name: 'version 2',
-				data: [-0.2, 0.8, 5.7, 11.3, 17.0, 22.0, 24.8, 24.1, 20.1, 14.1, 8.6, 2.5]
-			}, 
-			{
-				name: 'version 3',
-				data: [-0.9, 0.6, 3.5, 8.4, 13.5, 17.0, 18.6, 17.9, 14.3, 9.0, 3.9, 1.0]
-			},
-			{
-				name: 'version 4',
-				data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
-			}
-		]
-	}).highcharts()
-}
 
+// Model has the following fields:
+// xLabels
+// yLabels
+// values
 function renderHeatmap(jQuerySelection, model){
+	var xLabel = (model.xLabels==null) ? [] : model.xLabels
+	var yLabel = (model.yLabels==null) ? [] : model.yLabels
+
 	return jQuerySelection.highcharts({
 		credits: { 	enabled: false },
 		chart: {
@@ -93,16 +46,16 @@ function renderHeatmap(jQuerySelection, model){
 			marginBottom: 80
 		},
 		title: {
-			text: 'Actions/ms for all versions on all tests (fake data)'
+			text: 'Actions/ms for all versions on all tests'
 		},
 		xAxis: {
-			categories: model.xLabels,
+			categories: xLabel,
 			title: {
 				text: "Version"
 			}
 		},
 		yAxis: {
-			categories: model.yLabels,
+			categories: yLabel,
 			title: {
 				text: "Test"
 			}
@@ -115,11 +68,11 @@ function renderHeatmap(jQuerySelection, model){
 		legend: { enabled: false },
 		tooltip: {
 			formatter: function () {
-				return '<b>' + this.series.xAxis.categories[this.point.x] + '</b>, <br><b>' + this.point.value + '</b>, <br><b>' + this.series.yAxis.categories[this.point.y] + '</b>';
+				return '<b> Version: ' + this.series.xAxis.categories[this.point.x] + '</b>, <br><b>Performance: ' + this.point.value + '</b>, <br><b>Test: ' + this.series.yAxis.categories[this.point.y] + '</b>';
 			}
 		},
 		series: [{
-			data: model.data,
+			data: model.values,
 			borderWidth: 1,
 			dataLabels: {
 				enabled: true,
@@ -132,6 +85,7 @@ function renderHeatmap(jQuerySelection, model){
 		}]
 	}).highcharts()
 }
+
 
 function buildTestPerformance(jQuerySelection, model){
 	var series = model.series

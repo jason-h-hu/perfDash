@@ -183,7 +183,8 @@ NOTE! ->	This functionality isn't currently coded up. Right now, all the
 			describes the data. 
 
 		II.	Backend
-
+NOTE! ->	Currently, a lot of the aggregating, filtering, and calculating is done
+			by node and javascript--all the ad-hoc 
 		-----------------------------------------------------------------------------
 
 		3. FEATURES TO ADD
@@ -197,6 +198,7 @@ NOTE! ->	This functionality isn't currently coded up. Right now, all the
 		-----------------------------------------------------------------------------
 		1.	The entire dashboard is having issues dynamically drawing the highcharts.
 			The window needs to be manually resized to trigger a proper render.
+
 		-----------------------------------------------------------------------------
 		5. GLOSSARY
 		-----------------------------------------------------------------------------

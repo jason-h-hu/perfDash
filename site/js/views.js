@@ -95,10 +95,6 @@ var WorkloadsView = Backbone.View.extend({
 	}
 });
 
-// var WorkloadResults = Backbone.View.extend({
-	
-// })
-
 var HeatMapView = Backbone.View.extend({
 	el: ("#master-view"),
 	initialize: function(){

@@ -233,7 +233,7 @@ mongoClient.connect(db_uri, function(err, db){
 
     // This aggregates 
     app.get( '/api/versions/summary/', function( request, response ) {
-        console.log("got a test/summary request")
+        // console.log("got a test/summary request")
         db.collection("results").find().toArray(function(err, items) {
             if (err){
                 console.log("Error with querying results")

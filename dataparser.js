@@ -16,7 +16,7 @@ module.exports.packageDataVersions = function (data){
 	for (var workload in simulation_name){
 		git_versions[workload] = {}
 		for (var i = 0; i < simulation_name[workload].length; i++){
-			var gitversion = simulation_name[workload][i]["server_git_version"]
+			var gitversion = simulation_name[workload][i]["server_version"]
 			if (! (gitversion in git_versions[workload])){
 				git_versions[workload][gitversion] = []
 			}
@@ -45,7 +45,7 @@ module.exports.packageData = function (data){
 	for (var workload in simulation_name){
 		git_versions[workload] = {}
 		for (var i = 0; i < simulation_name[workload].length; i++){
-			var gitversion = simulation_name[workload][i]["server_git_version"]
+			var gitversion = simulation_name[workload][i]["server_version"]
 			if (! (gitversion in git_versions[workload])){
 				git_versions[workload][gitversion] = []
 			}
@@ -157,12 +157,12 @@ module.exports.parseResults = function (collection) {
 		categories: categories,
 		series: series,
 		ids: ids,
-		server_git_version: model.server_git_version,
+		server_version: model.server_version,
 		_id: model._id,
 		workload: model.workload,
 		group_uid: model.group_uid,
 		harness: model.harness,
-		name: model.server_git_version
+		name: model.server_version
 	}
 }
 
@@ -307,6 +307,7 @@ module.exports.parseResultsVersions = function (collection) {
 					for (var l in throughputStats){
 						throughput[j] += nodeStats[throughputStats[l]]		
 					}
+					console.log(nodeStats)
 					// throughput[j] /= (nodeStats["run_nanos"]/1000)
 				}
 			}
@@ -316,29 +317,11 @@ module.exports.parseResultsVersions = function (collection) {
 			data: latency,
 			name:  "Latency - " + gitversion,
 			category: "latency",
-			// yAxis: 1,
-			// type: "spline"
-			// server_git_version: model.server_git_version,
-			// _id: model._id,
-			// workload: model.workload,
-			// group_uid: model.group_uid,
-			// harness: model.harness,
-			// name: model.server_git_version
-				
 		})
 		returnStruct.push({
 			data: throughput,
 			name: "Throughtput - " + gitversion,
 			category: "throughput"
-			// type: "spline",
-			// yAxis: 2
-			// server_git_version: model.server_git_version,
-			// _id: model._id,
-			// workload: model.workload,
-			// group_uid: model.group_uid,
-			// harness: model.harness,
-			// name: model.server_git_version
-				
 		})
 
     }

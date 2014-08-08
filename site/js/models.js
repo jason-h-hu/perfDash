@@ -5,10 +5,7 @@ var Test = Backbone.Model.extend({
 		return {
 			name: "twitter",
 			runs: {},
-			ip: "0.0.0.0",
-			expanded: false,
 			summary: {},
-			ids: []
 		}
 	},
 	initialize: function(){
@@ -36,7 +33,7 @@ var Tests = Backbone.Collection.extend({
 		if (this.length > 0){	
 			return this.at(this.length-1)
 		}
-	},
+	}
 });
 
 // This models multiple runs on a single test, for multiple
@@ -51,14 +48,15 @@ var WorkloadResult = Backbone.Model.extend({
 		}
 	},
 	initialize: function(){
+		this.fetchSummary()
+	},
+	fetchSummary: function(){
+		// MORE HERE
 		var summary = this.get("summary")
 		this.set("name", summary.name)
 		this.set("workload", summary.workload)
 	},
-	fetchSummary: function(){
-	},
 	fetchData: function(){
-		console.log("fetched")
 		var that = this
 		this.get("tests").add(new Test({
 			"name": that.get("name"),
@@ -87,11 +85,11 @@ var CompleteResult = Backbone.Model.extend({
 	fetchSummary: function(){
 		var that = this
 		jQuery.get("/api/heatmap/",  function( data, textStatus, jqXHR ){
+			console.log(data)
 			that.set("summary", data)
 		});
 	},
 	fetchData: function(){
-		console.log("adding")
 		var that = this
 		jQuery.get( "/api/versions/summary/", function( data, textStatus, jqXHR ) {
 			for (var i = 0; i < data.length; i++){

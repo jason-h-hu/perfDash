@@ -144,7 +144,6 @@ module.exports.parseResults = function (collection) {
 		for (var i in nodes[nodeName]){
 			data.push(nodes[nodeName][i])
 		}
-		console.log(nodeName)
 		series.push({
 			name: nodeName,
 			type: "column",
@@ -307,7 +306,6 @@ module.exports.parseResultsVersions = function (collection) {
 					for (var l in throughputStats){
 						throughput[j] += nodeStats[throughputStats[l]]		
 					}
-					console.log(nodeStats)
 					// throughput[j] /= (nodeStats["run_nanos"]/1000)
 				}
 			}

@@ -43,8 +43,8 @@ mongoClient.connect(db_uri, function(err, db){
         response.send( 'Library API is running' );
     });
 
-    // This shows all workloads across all versions
-    app.get( '/api/heatmap/', function( request, response ) {
+    // Request the summary of everything--used for generating CompleteResult
+    app.get('/api/completeResult/summary/:id', function(request, response){
         var cells = {};
 
         function getThroughput(doc) {
@@ -117,50 +117,45 @@ mongoClient.connect(db_uri, function(err, db){
                               });
             });
         });
-    });
+    })
 
-    // This shows all workloads run against a single server version
-    app.get( '/api/version/:id', function( request, response ) {
-        response.send("got a test request for " + request.params.id)
-        console.log("got a test request for " + request.params.id)
-    });
+    // Request unaggregated data--used for generating WorkloadResult, in Complete Result
+    app.get('/api/completeResult/data/:id', function(request, response){
 
-    // this shows a given workload across all versions. 
-    // This return a schema of:
-    // {
-    //     xCategories: [c1, c2, c3 ...],
-    //     series: [
-    //         {   name: name,
-    //             data: [v1, v2 ...]
-    //         }
-    //         ...
-    //     ]
-    // }
-    app.get( '/api/run/:id', function( request, response ) {
-        console.log("got a run request for " + request.params.id)
-        var fakeData = {
-            series: [{
-                name: "version1",
-                data: [5, 8, 12, 17, 21]
-            },
-            {
-                name: "version2",
-                data: [6, 9.5, 14, 19, 23]
-            },
-            {
-                name: "version1",
-                data: [9, 10, 13, 20, 23.25]
-            },
-            {
-                name: "version1",
-                data: [10, 15, 16, 17, 17]
-            }],
-            xCategories: ["1", "2", "4", "8", "16"]
-        }
-        response.send(fakeData)
-    });
+        // THIS IS BROKEN. RIGHT NOW IT SHOULD ONLY RETURN THE DESIRED
+        // ID--instead it returns everything. 
+        db.collection("results").find().toArray(function(err, items) {
+            if (err){
+                console.log("Error with querying results")
+            }
+            else{
+                var data = dataparser.packageDataVersions(items)
+                var results = []
+                for (var workload in data){
+                    var versions = data[workload]
+                    var result = dataparser.parseResultsVersions(versions)
+                    result.name = workload
+                    results.push(result)
+                }
 
+                response.send(results)  
+            }
+        })        
+    })
 
+    app.get('/api/workloadResult/summary/:id', function(request, response){
+        return 
+    })
+
+    app.get('/api/workloadResult/data/:id', function(request, response){
+        response.send( {
+            "name": "FILLERNAME",
+            "workload": "twitter"
+        })
+    })
+
+    // This gets the same thing as above, but filtered such that it's just 
+    // for a desired workload. e.g. Twitter
     // For the given test, this should show the aggregate summary of all its
     // runs. This can either be an average, running average of the previous n
     // runs, or just the last run
@@ -187,31 +182,9 @@ mongoClient.connect(db_uri, function(err, db){
     // }
     // Where m is the number of runs, and id is the id of a run, and n is the
     // number of categories, such as "1 thread", "2 threads", etc. 
-    app.get( '/api/test/summary/', function( request, response ) {
-        console.log("got a test/summary request")
-        db.collection("results").find().toArray(function(err, items) {
-            if (err){
-                console.log("Error with querying results")
-            }
-            else{
-                var data = dataparser.packageData(items)
-                var results = []
-                for (var workload in data){
-                    var versions = data[workload]
-                    for (var gitversion in versions){
-                        var runs = versions[gitversion]
-                        results.push(dataparser.parseResults(runs))
-                    }
-                }
-
-                response.send(results)  
-            }
-        })
-    });
-
-    // This gets the same thing as above, but filtered such that it's just 
-    // for a desired workload. e.g. Twitter
-    app.get( '/api/test/:workload', function( request, response ) {
+    // The ID is the ID of the "completeResult" we want, which, in this case
+    // is everything
+    app.get( '/api/test/summary/:workload', function( request, response ) {
         console.log("got a test request " + request.params.workload)
         db.collection("results").find().toArray(function(err, items) {
             if (err){
@@ -231,40 +204,31 @@ mongoClient.connect(db_uri, function(err, db){
         })
     });
 
-    // This aggregates 
-    app.get( '/api/versions/summary/', function( request, response ) {
-        console.log("got a test/summary request")
-        db.collection("results").find().toArray(function(err, items) {
-            if (err){
-                console.log("Error with querying results")
-            }
-            else{
-                var data = dataparser.packageDataVersions(items)
-                var results = []
-                for (var workload in data){
-                    var versions = data[workload]
-                    var result = dataparser.parseResultsVersions(versions)
-                    result.name = workload
-                    results.push(result)
-                }
 
-                response.send(results)  
-            }
-        })
-    });
+    app.get('/api/test/data/:id', function(request, response){
+        console.log("got a run request for " + request.params.id)
+        var fakeData = {
+            series: [{
+                name: "version1",
+                data: [5, 8, 12, 17, 21]
+            },
+            {
+                name: "version2",
+                data: [6, 9.5, 14, 19, 23]
+            },
+            {
+                name: "version1",
+                data: [9, 10, 13, 20, 23.25]
+            },
+            {
+                name: "version1",
+                data: [10, 15, 16, 17, 17]
+            }],
+            xCategories: ["1", "2", "4", "8", "16"]
+        }
+        response.send(fakeData)
+    })
 
-
-    // This gets everything
-    app.get( '/api/results', function( request, response ) {
-        db.collection("results").find().toArray(function(err, items) {
-            if (err){
-                console.log("Error with querying results")
-            }
-            else{
-                response.send(dataparser.parseResults(items))   // Moved all parsing methods to dataparser.js
-            }
-        })
-    });
 
 
     //Start server

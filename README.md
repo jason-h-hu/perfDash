@@ -182,16 +182,49 @@ NOTE! ->	This functionality isn't currently coded up. Right now, all the
 			into which you want to draw the chart, and the associative array that
 			describes the data. 
 
+											******
+
 		II.	Backend
+			The backend is currently just a basic express application--its purpose
+			is to have the REST API to serve all the data from the MongoDB server.
+
 NOTE! ->	Currently, a lot of the aggregating, filtering, and calculating is done
-			by node and javascript--all the ad-hoc 
+			by node and javascript--all the ad-hoc functions are tucked away in 
+			dataparser.js. Ideally this file shouldn't exist, and all the aggregation
+			should be done by Mongo, not node. 
+
+			For each model, you can request the model by querying:
+
+			/api/modelName/[summary or data]/:id
+
+			Querying summary returns an associative array that describes the model. 
+
+			Querying data returns a list of associative-arrays that describe
+			the data itself--usually each of these can be used to describe the 
+			constintuent models--for example because workloadResult is described
+			by a collection of tests, the list resulting from /api/workloadResult/data/:id
+			can be used to describe a collection of tests. 
+
+			Finally, not all IDs are supported in the backend. 
+
 		-----------------------------------------------------------------------------
 
 		3. FEATURES TO ADD
 		-----------------------------------------------------------------------------
-		1. 	Properly build a TestView
+		In no particular order: 
+		1. 	Properly build a TestView--right now, the graphs representing a single 
+			test are drawn directly in the WorkloadView, rather than WorkloadView
+			delegating that properly to a TestView
 		2. 	Have the dashboard be able to query different databases, using
 			topbar menu. 
+		3.	Always set the y-min as zero for the range.
+		4.	Allow for error ranges in the charts.
+		5.	Properly catalog the data in the backend with various IDs representing 
+			the tests that each document belongs to. 
+		6.	Proplerly allow models to fetchData and fetchSummary
+		7. 	Allow for more precise selection of which version to display, when 
+			clicking "EXPAND". Right now it picks the last in the list--give the user
+			the ability to pick from time, githash, etc. or display multiple at once
 		-----------------------------------------------------------------------------
 
 		4. BUGS

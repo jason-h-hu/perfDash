@@ -1,5 +1,7 @@
 // This class is used to reformat data from one form to another.
 
+// This sorts all the data according to workload then version, returning
+// it as a dict of dicts of lists, which reflects this sorting.
 module.exports.packageDataVersions = function (data){
 		// First sort by workload 
 	var simulation_name = {}
@@ -27,8 +29,8 @@ module.exports.packageDataVersions = function (data){
 	return git_versions
 }
 
-// This is a temporary solution. This is just to pgroup according to workload, then
-// version, then parameters. This takes in all the data, and returns a dict with the
+// This is the same as before, with an extra degree
+// of sorting on the number of threads
 module.exports.packageData = function (data){
 		// First sort by workload 
 	var simulation_name = {}
@@ -71,6 +73,8 @@ module.exports.packageData = function (data){
 	}
 	return run
 }
+
+// This takes the sorted result from the previous helper method and aggregates it out
 module.exports.parseResults = function (collection) {
 
 	var series = []

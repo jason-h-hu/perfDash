@@ -11,14 +11,17 @@ var Test = Backbone.Model.extend({
 	initialize: function(){
 		this.fetchSummary()
 	},
+	// This makes a request for a summary of the data--e.g. 
+	// the latency/throughput aggregates, over multiple threads
 	fetchSummary: function(){
 		var that = this
-		var query = '/api/test/' + that.get("name")
-		console.log(query)
+		var query = '/api/test/summary/' + that.get("name")
 		jQuery.get( query, function( data, textStatus, jqXHR ) {
 			that.set("summary", data)
 		});
 	},
+	// This doesn't do anything because we have no lower 
+	// resolution of data at the moment
 	fetchData: function(){
 	},
 })
@@ -44,31 +47,60 @@ var WorkloadResult = Backbone.Model.extend({
 			name: "twitter",
 			workload: "twitter",
 			tests: new Tests(),
-			summary: {},
 		}
 	},
 	initialize: function(){
-		this.fetchSummary()
+		// Make a request to the backend if we don't have the
+		// summary
+		if (this.get("summary") == null){
+			this.fetchSummary()
+		}
+		else{
+			var summary = this.get("summary")
+			this.set("name", summary.name)
+			this.set("workload", summary.workload)
+		}
 	},
+	// There are not working--right now ID is just filler, and
+	// the resulting return values are filler anyway. Ideally
+	// this should always be created with a unique identifier
+	// such that the model can always fetch summaries and data
 	fetchSummary: function(){
-		// MORE HERE
-		var summary = this.get("summary")
-		this.set("name", summary.name)
-		this.set("workload", summary.workload)
+
+		var that = this
+		var id = "fillerID"
+		var query = "/api/workloadResult/summary/" + id
+		jQuery.get(query,  function( data, textStatus, jqXHR ){
+			that.set("summary", data)
+			this.set("name", data.name)
+			this.set("workload", data.workload)
+		});
+
 	},
 	fetchData: function(){
+		// More here
 		var that = this
-		this.get("tests").add(new Test({
-			"name": that.get("name"),
-			"workload": that.get("workload"),
-		}))
+		var id = "fillerID"
+		var query = "/api/workloadResult/data/" + id
+		jQuery.get(query,  function( data, textStatus, jqXHR ){
+			that.get("tests").add(new Test({			// NOTE! <------------------THIS IS FILLER DATA. 
+				"name": that.get("name"),				//							IT SHOULD COME FROM THE DATABASE
+				"workload": that.get("workload"),
+			}))
+			that.set("summary", data)
+			that.set("name", data.name)
+			that.set("workload", data.workload)
+		});
 	},
 });
 
+// This just lets us organize a collection of Workloads
 var WorkloadsResults = Backbone.Collection.extend({
 	model: WorkloadResult
 })
 
+// Our topmost model of data--this is pretty much the only
+// case where our queries are working. 
 var CompleteResult = Backbone.Model.extend({
 	defaults: function(){
 		return {
@@ -82,62 +114,30 @@ var CompleteResult = Backbone.Model.extend({
 		this.fetchSummary()
 		this.fetchData()
 	},
+	// Because we only have one CompleteResult, the
+	// query just returns everythign and doesn't filter
+	// on id
+	// This gets the aggregate summary of all the data--this
+	// is used to draw the heatmap
 	fetchSummary: function(){
 		var that = this
-		jQuery.get("/api/heatmap/",  function( data, textStatus, jqXHR ){
-			console.log(data)
+		var id = "fillerID"
+		var query = "/api/completeResult/summary/" + id
+		jQuery.get(query,  function( data, textStatus, jqXHR ){
 			that.set("summary", data)
 		});
 	},
+	// This gets all the individual summaries of teh WorkloadResult
+	// that compose this model--each can be used to instantiate
+	// and populate teh collection of WorkloadResult
 	fetchData: function(){
 		var that = this
-		jQuery.get( "/api/versions/summary/", function( data, textStatus, jqXHR ) {
+		var id = "fillerID"
+		var query = "/api/completeResult/data/" + id
+		jQuery.get(query,  function( data, textStatus, jqXHR ){
 			for (var i = 0; i < data.length; i++){
 				that.get("versions").add(new WorkloadResult({summary: data[i]}))				
 			}
 		});
 	},
 })
-
-
-
-// // This is a collection of all the results 
-// // of all the versions run on a test
-// var Versions = Backbone.Collection.extend({
-// 	model: Version,
-// 	initialize: function(){
-// 		this.on('add', this.setLastSelected, this)
-// 	},
-// 	getSelected: function(){
-// 		var selected = this.where({ selected: true })
-// 		if (selected.length > 0){
-// 			return selected[0]
-// 		}
-// 		return this.last()
-// 	},
-// 	unselectAll: function(){
-// 		this.each(function(item){
-// 			item.set({selected: false})
-// 		})
-// 	},
-// 	setLastSelected: function(){
-// 		this.unselectAll()
-// 		var lastEntry = this.last()
-
-// 		if (lastEntry){
-// 			if (!lastEntry.get("selected")){
-// 				lastEntry.set({selected: true});
-// 			}
-// 		}
-// 	},
-// 	setSelected: function(name){
-// 		var that = this
-// 		this.each(function(item){
-// 			if (item.get("name") == name){
-// 				that.unselectAll()
-// 				item.set({"selected": true})
-// 			}
-// 		})
-// 	},
-// 	comparator: 'order'	
-// });

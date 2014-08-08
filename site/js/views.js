@@ -1,3 +1,7 @@
+// Right now this isn't working, because it can't properly
+// create a graph in itself. I think the problem is that
+// it's wrestling with the DOM, and it isn't properly bount
+// to a div
 var TestView = Backbone.View.extend({
 	model: new Test(),
 	initialize: function(){
@@ -13,7 +17,8 @@ var TestView = Backbone.View.extend({
 	}
 })
 
-// This visualizes a single test
+// See the template in index.html to understand what this
+// is rendering.
 var WorkloadView = Backbone.View.extend({
 	model: new WorkloadResult(),
 	expanded: false,
@@ -24,8 +29,11 @@ var WorkloadView = Backbone.View.extend({
 	className: "container-fluid testListItem123456 ",
 	template: _.template($("#testListTemplate").html()),
 	initialize: function(){
+
+		// Anytime we change data we make sure we update ourself
 		this.model.get("tests").on("change:summary", this.renderTestGraph, this)
 
+		// Populating the metadata html table
 		var metadataKeys = ["server_host", "server_version"]
 		var metadataTemplate = _.template($("#testListMetadataTemplate").html())
 		var model = this.model
@@ -48,10 +56,16 @@ var WorkloadView = Backbone.View.extend({
 	render: function(){
 		return this
 	},
+
+	// Drawing the main graph, which allows comparison between versions of code
 	renderCharts: function(){
 		var model = this.model
 		this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  this.model.get("summary"))			
 	},
+
+	// Drawoing the secondary graph, which allows a detailied examination of
+	// a single version of the code. 
+	// Right now it just grabs the last one in the list. 
 	renderTestGraph: function(){
 		var last = this.model.get("tests").at(0)
 		if (last != null){
@@ -60,12 +74,17 @@ var WorkloadView = Backbone.View.extend({
 			this.testGraph = buildTestPerformance(this.$("#sim-test-view"), last.get("summary"))
 		}
 	},
+
+	// This controls the display of the menu based off clicks to the
+	// "EXPAND" button. 
 	toggleExpand: function(){
 		var model = this.model
 		if (this.expanded){
 			this.testGraph.destroy()
 		}
 		else{
+			// Once the model updates itself, the view will know
+			// since it's subscribing to the model, and it'll draw itself
 			this.model.fetchData()
 		}
 		this.expanded = ! this.expanded
@@ -95,6 +114,8 @@ var WorkloadsView = Backbone.View.extend({
 	}
 });
 
+// The visualizes the heatmap at the top--it more or less
+// so is a wrapper for teh highcharts
 var HeatMapView = Backbone.View.extend({
 	el: ("#master-view"),
 	initialize: function(){
@@ -112,7 +133,4 @@ var HeatMapView = Backbone.View.extend({
 		this.heatmap.xAxis[0].setCategories(summary.xLabels);
 		this.heatmap.yAxis[0].setCategories(summary.yLabels);
 	},
-	notify: function(element){
-		alert(element.html)
-	}
 })

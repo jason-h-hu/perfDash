@@ -1,3 +1,4 @@
+// Helper method for rendering to scientific notation. I don't think it works
 function scientificNotation(value){
 	if (((""+value).length < 4) ){
 		return value
@@ -30,10 +31,11 @@ function scientificNotation(value){
 }
 
 
+// This visualizes the heatmap. 
 // Model has the following fields:
-// xLabels
-// yLabels
-// values
+// xLabels - a list of all the categories in the x axis
+// yLabels - a list of all the categories in the y axis
+// values - a list of triplets, correspongind to [x coordinate, y coordinate, value]
 function renderHeatmap(jQuerySelection, model){
 	var xLabel = (model.xLabels==null) ? [] : model.xLabels
 	var yLabel = (model.yLabels==null) ? [] : model.yLabels
@@ -86,7 +88,12 @@ function renderHeatmap(jQuerySelection, model){
 	}).highcharts()
 }
 
-
+// This visualizes the performance of a since test Model
+// Model has the following attributes:
+// series - a list of associated arrays composed of
+// 			name (which is the name of the group that 
+// 			the data belongs to, and data, which is a list of values. 
+// categories - a list of the categories in the x axis
 function buildTestPerformance(jQuerySelection, model){
 	var series = model.series
 	for (var i = 0; i < series.length; i++){
@@ -193,6 +200,16 @@ function buildTestPerformance(jQuerySelection, model){
 	}).highcharts();
 }
 
+// This visualizes the performance of various versions
+// or a piece of code. There are two fields of model:
+// series - an array of dictionaries, each dictionary
+// 			representing a version of data and its 
+// 			performance. It has a name, an array
+// 			called data of its values, and a string called
+// 			category which describes which y-Axis it belongs
+// 			in. e.g. Latency or Throughput
+// categories - an array of all teh categories along the
+// 				x axis
 function buildVersionPerformance(jQuerySelection, model){
 	var series = model.series
 	var axes = {}
@@ -217,7 +234,6 @@ function buildVersionPerformance(jQuerySelection, model){
 		s["color"] = swatch[c].pop()
 	}
 	var categories = model.categories
-	console.log(categories)
 	var yAxis = []
 	for (var c in axes){
 		yAxis.push({

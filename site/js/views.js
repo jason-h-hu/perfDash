@@ -1,3 +1,18 @@
+var TestView = Backbone.View.extend({
+	model: new Test(),
+	initialize: function(){
+
+	},
+	render: function(){
+		this.testGraph = buildTestPerformance(this.$el, this.model)
+		return this
+	},
+	destroy: function(){
+		this.remove();
+		this.render();
+	}
+})
+
 // This visualizes a single test
 var WorkloadView = Backbone.View.extend({
 	model: new WorkloadResult(),
@@ -36,27 +51,22 @@ var WorkloadView = Backbone.View.extend({
 	renderCharts: function(){
 		var model = this.model
 		this.versionGraph = buildVersionPerformance(this.$("#sim-version-view"),  this.model.get("summary"))			
-		// this.heatmap = new HeatmapView({collection: model.get("versions")})
-		// this.versionGraph = new VersionPerformanceGraphView({collection: model.get("versions")})
 	},
 	renderTestGraph: function(){
 		var last = this.model.get("tests").at(0)
-		console.log(last)
 		if (last != null){
+			console.log("trying to render testview")
+			console.log(last.get("summary"))
 			this.testGraph = buildTestPerformance(this.$("#sim-test-view"), last.get("summary"))
 		}
 	},
 	toggleExpand: function(){
 		var model = this.model
 		if (this.expanded){
-			// this.heatmap.destroy()
-			// this.renderTestGraph()
 			this.testGraph.destroy()
 		}
 		else{
-			// this.renderTestGraph()
 			this.model.fetchData()
-			// this.heatmap = tempHeatMap(this.$("#sim-heatmap"))
 		}
 		this.expanded = ! this.expanded
 	},

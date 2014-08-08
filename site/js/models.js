@@ -3,6 +3,7 @@
 var Test = Backbone.Model.extend({
 	defaults: function(){
 		return {
+			name: "twitter",
 			runs: {},
 			ip: "0.0.0.0",
 			expanded: false,
@@ -18,7 +19,6 @@ var Test = Backbone.Model.extend({
 		var query = '/api/test/' + that.get("name")
 		console.log(query)
 		jQuery.get( query, function( data, textStatus, jqXHR ) {
-			console.log(data)
 			that.set("summary", data)
 		});
 	},
@@ -52,7 +52,6 @@ var WorkloadResult = Backbone.Model.extend({
 	},
 	initialize: function(){
 		var summary = this.get("summary")
-		console.log(summary)
 		this.set("name", summary.name)
 		this.set("workload", summary.workload)
 	},
@@ -72,7 +71,7 @@ var WorkloadsResults = Backbone.Collection.extend({
 	model: WorkloadResult
 })
 
-var CompleteResults = Backbone.Model.extend({
+var CompleteResult = Backbone.Model.extend({
 	defaults: function(){
 		return {
 			name: "foo.java",
@@ -96,7 +95,6 @@ var CompleteResults = Backbone.Model.extend({
 		var that = this
 		jQuery.get( "/api/versions/summary/", function( data, textStatus, jqXHR ) {
 			for (var i = 0; i < data.length; i++){
-				console.log(data[i])
 				that.get("versions").add(new WorkloadResult({summary: data[i]}))				
 			}
 		});

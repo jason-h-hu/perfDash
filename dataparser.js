@@ -285,9 +285,11 @@ module.exports.parseResultsVersions = function (collection) {
 	}
     for (var gitversion in collection){
         var runs = collection[gitversion]
-		var series = []
+		var latency = []
+		var throughput = []
 		for (var c in labels){
-			series.push(0)
+			latency.push(0)
+			throughput.push(0)
 		}
 
 		for (var i = 0; i < runs.length; i++){
@@ -300,14 +302,22 @@ module.exports.parseResultsVersions = function (collection) {
 				for (var nodeName in curNode){
 					var nodeStats = curNode[nodeName]
 					for (var l in latencyStats){
-						series[j] += nodeStats[latencyStats[l]]		
+						latency[j] += nodeStats[latencyStats[l]]		
 					}
+					for (var l in throughputStats){
+						throughput[j] += nodeStats[throughputStats[l]]		
+					}
+					// throughput[j] /= (nodeStats["run_nanos"]/1000)
 				}
 			}
 		}
+
 		returnStruct.push({
-			data: series,
-			name: gitversion
+			data: latency,
+			name:  "Latency - " + gitversion,
+			category: "latency",
+			// yAxis: 1,
+			// type: "spline"
 			// server_git_version: model.server_git_version,
 			// _id: model._id,
 			// workload: model.workload,
@@ -316,6 +326,21 @@ module.exports.parseResultsVersions = function (collection) {
 			// name: model.server_git_version
 				
 		})
+		returnStruct.push({
+			data: throughput,
+			name: "Throughtput - " + gitversion,
+			category: "throughput"
+			// type: "spline",
+			// yAxis: 2
+			// server_git_version: model.server_git_version,
+			// _id: model._id,
+			// workload: model.workload,
+			// group_uid: model.group_uid,
+			// harness: model.harness,
+			// name: model.server_git_version
+				
+		})
+
     }
 
 

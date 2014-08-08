@@ -46,7 +46,7 @@ function renderHeatmap(jQuerySelection, model){
 			marginBottom: 80
 		},
 		title: {
-			text: 'Actions/ms for all versions on all tests'
+			text: 'Operations/s for all versions on all tests'
 		},
 		xAxis: {
 			categories: xLabel,
@@ -189,7 +189,43 @@ function buildTestPerformance(jQuerySelection, model){
 
 function buildVersionPerformance(jQuerySelection, model){
 	var series = model.series
-	var categories = model.xCategories
+	var axes = {}
+	var index = 0
+	var palette = [
+					["#D2514F", "#CC8281", "#D25A40", "#C94B33", "#D28F82"],
+					["#8BC1D2", "#A5B0C9", "#A5C1C9", "#68A5CC", "#54AECC"]
+			]
+	var swatch = {}
+	// colors: ,
+
+	for (var i = 0; i < series.length; i++){
+		var s = series[i]
+		var c = s.category
+		if (!(c in axes)){
+			axes[c] = index
+			swatch[c] = palette.pop(0)
+			index++
+		}
+		s["yAxis"] = axes[c]%2
+		s["type"] = "spline"
+		s["color"] = swatch[c].pop()
+	}
+	var categories = model.categories
+	var yAxis = []
+	for (var c in axes){
+		yAxis.push({
+			plotLines: [{
+				value: 0,
+				width: 2,
+				// color: 'silver'
+			}],
+			// align: "right",
+			opposite: (axes[c]%2==1),
+			title: {
+				text: c
+			}	
+		})	
+	}
 	return jQuerySelection.highcharts({ 
 		credits: { 	enabled: false },
 
@@ -199,26 +235,49 @@ function buildVersionPerformance(jQuerySelection, model){
 		},
 		chart: {
 			plotBackgroundColor: "#fafafa",
-			type: "spline"	
+			// type: "spline"	
 		},
-		xAxis: {
-			type: "category",
-			categories: categories,
-			title: {
-				text: "threads"
-			}			
-		},
-		yAxis: {
-			plotLines: [{
-				value: 0,
-				width: 2,
-				color: 'silver'
-			}],
-			align: "left",
-			title: {
-				text: "performance"
-			}			
-		},
+		// xAxis: {
+		// 	type: "category",
+		// 	categories: categories,
+		// 	title: {
+		// 		text: "threads"
+		// 	}			
+		// },
+		yAxis: yAxis,
+
+		      //   yAxis: [{ // Primary yAxis
+        //     labels: {
+        //         format: '{value}°C',
+        //         style: {
+        //             color: Highcharts.getOptions().colors[2]
+        //         }
+        //     },
+        //     title: {
+        //         text: 'Temperature',
+        //         style: {
+        //             color: Highcharts.getOptions().colors[2]
+        //         }
+        //     },
+        //     opposite: true
+
+        // }, { // Secondary yAxis
+        //     gridLineWidth: 0,
+        //     title: {
+        //         text: 'Rainfall',
+        //         style: {
+        //             color: Highcharts.getOptions().colors[0]
+        //         }
+        //     },
+        //     labels: {
+        //         format: '{value} mm',
+        //         style: {
+        //             color: Highcharts.getOptions().colors[0]
+        //         }
+        //     }
+
+        // }
+
 		legend: {
 			title: {
 				text: "Version",
